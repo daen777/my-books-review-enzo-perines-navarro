@@ -27,6 +27,7 @@ Antes de instalar el proyecto, asegúrate de tener:
 1️⃣ **Clonar el repositorio**  
 
 git clone https://github.com/daen777/trabajo-final-my-books-review-enzo-perines-navarro.git
+
 cd trabajo-final-my-books-review-enzo-perines-navarro
 
 2️⃣ Instalar dependencias

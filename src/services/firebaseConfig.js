@@ -5,13 +5,13 @@ import { getStorage } from "firebase/storage";
 
 // Configuración de Firebase (REEMPLAZA con tus datos)
 const firebaseConfig = {
-    apiKey: "AIzaSyCT66_Agj-SwiQQg_WzYfJqNw6EGVIzxPE",
-    authDomain: "mi-comida-favorita-512fb.firebaseapp.com",
-    projectId: "mi-comida-favorita-512fb",
-    storageBucket: "mi-comida-favorita-512fb.firebasestorage.app",
-    messagingSenderId: "418418755344",
-    appId: "1:418418755344:web:63d0d128188904f7ee0795",
-    measurementId: "G-546KKH91V3"
+    apiKey: "",
+    authDomain: "",
+    projectId: "",
+    storageBucket: "",
+    messagingSenderId: "",
+    appId: "",
+    measurementId: ""
 };
 
 // Inicializar Firebase

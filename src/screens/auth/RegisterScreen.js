@@ -1,63 +1,82 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, Button, Alert } from "react-native";
-import { useForm, Controller } from "react-hook-form";
-import { registerUser } from "../../services/authService";
+import { View, Text, TextInput, Button, Alert, StyleSheet, ActivityIndicator } from "react-native";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../../services/firebaseConfig";
 
-const RegisterScreen = ({ navigation }) => {
-  const { control, handleSubmit, formState: { errors } } = useForm();
+export default function RegisterScreen({ navigation }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const onRegister = async (data) => {
+  const handleRegister = async () => {
+    if (!email.trim() || !password.trim() || !confirmPassword.trim()) {
+      Alert.alert("Error", "Por favor, completa todos los campos.");
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert("Error", "La contraseña debe tener al menos 6 caracteres.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert("Error", "Las contraseñas no coinciden.");
+      return;
+    }
+
     setLoading(true);
     try {
-      await registerUser(data.email, data.password);
-      Alert.alert("Registro exitoso", "Ahora puedes iniciar sesión.");
-      navigation.navigate("Login");
+      await createUserWithEmailAndPassword(auth, email, password);
+      Alert.alert("Éxito", "Cuenta creada correctamente.");
+      navigation.replace("Main"); // Redirige a la pantalla de perfil
     } catch (error) {
-      Alert.alert("Error", error.message);
+      Alert.alert("Error", "No se pudo crear la cuenta.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
-    <View style={{ padding: 20 }}>
-      <Text>Registro</Text>
-
-      <Controller
-        control={control}
-        name="email"
-        rules={{ required: "El email es obligatorio" }}
-        render={({ field: { onChange, value } }) => (
-          <TextInput 
-            placeholder="Email"
-            onChangeText={onChange}
-            value={value}
-            style={{ borderBottomWidth: 1, marginBottom: 10 }}
-          />
-        )}
+    <View style={styles.container}>
+      <Text style={styles.title}>Registro</Text>
+      <TextInput
+        placeholder="Correo Electrónico"
+        style={styles.input}
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
       />
-      {errors.email && <Text style={{ color: "red" }}>{errors.email.message}</Text>}
-
-      <Controller
-        control={control}
-        name="password"
-        rules={{ required: "La contraseña es obligatoria", minLength: { value: 6, message: "Mínimo 6 caracteres" } }}
-        render={({ field: { onChange, value } }) => (
-          <TextInput 
-            placeholder="Contraseña"
-            secureTextEntry
-            onChangeText={onChange}
-            value={value}
-            style={{ borderBottomWidth: 1, marginBottom: 10 }}
-          />
-        )}
+      <TextInput
+        placeholder="Contraseña (mínimo 6 caracteres)"
+        style={styles.input}
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
       />
-      {errors.password && <Text style={{ color: "red" }}>{errors.password.message}</Text>}
-
-      <Button title={loading ? "Registrando..." : "Registrar"} onPress={handleSubmit(onRegister)} disabled={loading} />
-      <Button title="Ya tienes cuenta? Inicia sesión" onPress={() => navigation.navigate("Login")} />
+      <TextInput
+        placeholder="Confirmar Contraseña"
+        style={styles.input}
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
+        secureTextEntry
+      />
+      {loading ? (
+        <ActivityIndicator size="large" color="#007bff" />
+      ) : (
+        <Button title="Registrarse" onPress={handleRegister} />
+      )}
+      <Text onPress={() => navigation.navigate("Login")} style={styles.link}>
+        ¿Ya tienes cuenta? Inicia sesión
+      </Text>
     </View>
   );
-};
+}
 
-export default RegisterScreen;
+const styles = StyleSheet.create({
+  container: { flex: 1, justifyContent: "center", padding: 20 },
+  title: { fontSize: 24, fontWeight: "bold", marginBottom: 20, textAlign: "center" },
+  input: { borderWidth: 1, borderColor: "#ccc", padding: 10, marginBottom: 10, borderRadius: 5 },
+  link: { color: "blue", marginTop: 10, textAlign: "center" },
+});

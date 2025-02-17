@@ -1,63 +1,63 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, Button, Alert } from "react-native";
-import { useForm, Controller } from "react-hook-form";
-import { loginUser } from "../../services/authService";
+import { View, Text, TextInput, Button, Alert, StyleSheet, ActivityIndicator } from "react-native";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../../services/firebaseConfig";
 
-const LoginScreen = ({ navigation }) => {
-  const { control, handleSubmit, formState: { errors } } = useForm();
+export default function LoginScreen({ navigation }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const onLogin = async (data) => {
+  const handleLogin = async () => {
+    if (!email.trim() || !password.trim()) {
+      Alert.alert("Error", "Por favor, ingresa un correo y contraseña.");
+      return;
+    }
+    
     setLoading(true);
     try {
-      await loginUser(data.email, data.password);
-      Alert.alert("Inicio de sesión exitoso", "Bienvenido!");
-      navigation.navigate("Library"); // Redirigir a la biblioteca
+      await signInWithEmailAndPassword(auth, email, password);
+      navigation.replace("Main"); // Redirige a la pantalla de perfil
     } catch (error) {
-      Alert.alert("Error", error.message);
+      Alert.alert("Error", "Correo o contraseña incorrectos.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
-    <View style={{ padding: 20 }}>
-      <Text>Iniciar Sesión</Text>
-
-      <Controller
-        control={control}
-        name="email"
-        rules={{ required: "El email es obligatorio" }}
-        render={({ field: { onChange, value } }) => (
-          <TextInput 
-            placeholder="Email"
-            onChangeText={onChange}
-            value={value}
-            style={{ borderBottomWidth: 1, marginBottom: 10 }}
-          />
-        )}
+    <View style={styles.container}>
+      <Text style={styles.title}>Iniciar Sesión</Text>
+      <TextInput
+        placeholder="Correo Electrónico"
+        style={styles.input}
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
       />
-      {errors.email && <Text style={{ color: "red" }}>{errors.email.message}</Text>}
-
-      <Controller
-        control={control}
-        name="password"
-        rules={{ required: "La contraseña es obligatoria" }}
-        render={({ field: { onChange, value } }) => (
-          <TextInput 
-            placeholder="Contraseña"
-            secureTextEntry
-            onChangeText={onChange}
-            value={value}
-            style={{ borderBottomWidth: 1, marginBottom: 10 }}
-          />
-        )}
+      <TextInput
+        placeholder="Contraseña"
+        style={styles.input}
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
       />
-      {errors.password && <Text style={{ color: "red" }}>{errors.password.message}</Text>}
-
-      <Button title={loading ? "Ingresando..." : "Iniciar Sesión"} onPress={handleSubmit(onLogin)} disabled={loading} />
-      <Button title="No tienes cuenta? Regístrate" onPress={() => navigation.navigate("Register")} />
+      {loading ? (
+        <ActivityIndicator size="large" color="#007bff" />
+      ) : (
+        <Button title="Ingresar" onPress={handleLogin} />
+      )}
+      <Text onPress={() => navigation.navigate("Register")} style={styles.link}>
+        ¿No tienes cuenta? Regístrate
+      </Text>
     </View>
   );
-};
+}
 
-export default LoginScreen;
+const styles = StyleSheet.create({
+  container: { flex: 1, justifyContent: "center", padding: 20 },
+  title: { fontSize: 24, fontWeight: "bold", marginBottom: 20, textAlign: "center" },
+  input: { borderWidth: 1, borderColor: "#ccc", padding: 10, marginBottom: 10, borderRadius: 5 },
+  link: { color: "blue", marginTop: 10, textAlign: "center" },
+});
